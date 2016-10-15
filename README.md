@@ -1,8 +1,6 @@
-# ES6 Karma Jasmine Webpack Boilerplate
+# I build my own mini AngularJS with ES5/ES2015 by TDD pattern.
 
-_No Grunt/Gulp required!_
-
-Boilerplate for building a client-based JavaScript library in ES6 using the following components:
+this framework is for building a client-based mvvm JavaScript library in ES6 using the following components:
 
 * [Babel](https://babeljs.io/)
 * [webpack](https://webpack.github.io/)
