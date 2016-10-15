@@ -25,6 +25,15 @@ describe ("digest", function () {
     scope.$watch(watchFn,ListenerFunc);
     scope.$digest();
     expect(ListenerFunc).toHaveBeenCalled();
+  });
+  it("watchFn should be called with scope after digest", function () {
+    const watchFn=jasmine.createSpy();
+    const ListenerFunc= function () {
+
+    };
+    scope.$watch(watchFn,ListenerFunc);
+    scope.$digest();
+    expect(watchFn).toHaveBeenCalledWith(scope)
   })
 
 });

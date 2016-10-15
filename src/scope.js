@@ -15,8 +15,10 @@ class Scope{
   }
   $digest(){
     "use strict";
+    let self=this;
     for(let watcher of this.$$watchers){
       watcher.ListenerFunc();
+      watcher.watchFn(self);
     }
   }
 }
