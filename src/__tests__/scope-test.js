@@ -34,8 +34,52 @@ describe ("digest", function () {
     scope.$watch(watchFn,ListenerFunc);
     scope.$digest();
     expect(watchFn).toHaveBeenCalledWith(scope)
+  });
+  it("call the listener function after the value change", function () {
+    scope.someValue='a';
+    scope.counter=0;
+    scope.$watch(function (scope) {
+        return scope.someValue;
+    }, function (newValue, oldValue, scope) {
+        scope.counter++;
+    });
+    expect(scope.counter).toBe(0);
+    scope.$digest();
+    expect(scope.counter).toBe(1);
+    scope.$digest();
+    expect(scope.counter).toBe(1);
+    scope.someValue='b';
+    expect(scope.counter).toBe(1);
+    scope.$digest();
+    expect(scope.counter).toBe(2);
+  });
+  it("call the listenerFun when watch value is first undefined", function () {
+    scope.counter=0;
+    scope.$watch(function (scope) {
+      return scope.someValue
+    }, function (newValue, oldValue, scope) {
+      scope.counter++
+    });
+    scope.$digest();
+    expect(scope.counter).toBe(1);
+  });
+  it("call the listener with new value as old value the first time", function () {
+    scope.someValue=123;
+    let oldValueGiven;
+    scope.$watch(function (scope) {
+      return scope.someValue;
+    }, function (newValue,oldValue,scope) {
+      oldValueGiven=oldValue;
+    });
+    scope.$digest();
+    expect(oldValueGiven).toBe(123);
+  });
+  it("may have watcher omit the listener function", function () {
+    let watchFunc=jasmine.createSpy().and.returnValue("something");
+    scope.$watch(watchFunc);
+    scope.$digest();
+    expect(watchFunc).toHaveBeenCalled();
   })
-
 });
 
 
