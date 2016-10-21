@@ -4,6 +4,32 @@
 
 import Scope from '../scope';
 
+class lodash{
+  constructor(){
+  }
+  range(start,stop,step){
+    if(arguments.length<=1){
+      stop=start||0;
+      start=0;
+    }
+    step=arguments[2]||1;
+    let length=Math.max(Math.ceil((stop-start)/step),0);
+    let array=new Array(length);
+    let index=0;
+    while(index<length){
+        array[index]=index+step;
+        index++;
+    }
+    return array;
+  }
+  times(n,callback,context){
+    "use strict";
+    for(let i=0;i<n;i++){
+      callback.call(context,i);
+    }
+  }
+}
+
 describe("scope", function () {
   it("scope can be", function () {
     const scope=new Scope();
@@ -79,7 +105,68 @@ describe ("digest", function () {
     scope.$watch(watchFunc);
     scope.$digest();
     expect(watchFunc).toHaveBeenCalled();
+  });
+  it("triggers chained watchers in the same digest", function () {
+    scope.name='Jane';
+    scope.$watch(function () {
+      return scope.nameUpper;
+    }, function (newValue,oldValue,scope) {
+      if(newValue){
+        scope.initial=newValue.substring(0,1)+'.';
+      }
+    });
+    scope.$watch(function () {
+      return scope.name;
+    }, function (newValue, oldValue, socpe) {
+      if(newValue){
+        scope.nameUpper=newValue.toUpperCase();
+      }
+    });
+
+    scope.$digest();
+    expect(scope.initial).toBe('J.');
+    scope.name='bob';
+    scope.$digest();
+    expect(scope.initial).toBe('B.');
+  });
+  it('give up on watcher after 10 times', function () {
+    scope.valueA=0;
+    scope.valueB=0;
+    scope.$watch(function () {
+      return scope.valueA;
+    }, function (newValue, oldValue, scope) {
+      scope.valueB++;
+    });
+    scope.$watch(function () {
+      return scope.valueB;
+    }, function (newValue, oldValue, scope) {
+      scope.valueA++;
+    });
+
+    expect(function () {
+      scope.$digest()
+    }).toThrow();
+  });
+  it("end the digest when watch is clean", function () {
+    let lo=new lodash();
+    var watchExecutions=0;
+    scope.array=lo.range(100);
+    lo.times(100,function(i){
+      "use strict";
+      scope.$watch(function (scope) {
+        watchExecutions++;
+        return scope.array[i];
+      }, function (newValue,oldValue,scope) {
+
+      });
+    });
+    scope.$digest();
+    expect(watchExecutions).toBe(200);
+    scope.array[0]=120;
+    scope.$digest();
+    expect(watchExecutions).toBe(301);
   })
+
 });
 
 
