@@ -3,32 +3,8 @@
  */
 
 import Scope from '../scope';
+import lodash from '../lodash';
 
-class lodash{
-  constructor(){
-  }
-  range(start,stop,step){
-    if(arguments.length<=1){
-      stop=start||0;
-      start=0;
-    }
-    step=arguments[2]||1;
-    let length=Math.max(Math.ceil((stop-start)/step),0);
-    let array=new Array(length);
-    let index=0;
-    while(index<length){
-        array[index]=index+step;
-        index++;
-    }
-    return array;
-  }
-  times(n,callback,context){
-    "use strict";
-    for(let i=0;i<n;i++){
-      callback.call(context,i);
-    }
-  }
-}
 
 describe("scope", function () {
   it("scope can be", function () {
@@ -165,6 +141,36 @@ describe ("digest", function () {
     scope.array[0]=120;
     scope.$digest();
     expect(watchExecutions).toBe(301);
+  })
+  it("do not end digest when the watch is in another watch", function () {
+    scope.valueT="asd";
+    scope.counter=0;
+    scope.$watch(function () {
+      return scope.valueT;
+    }, function (newValue, oldValue, scope) {
+      scope.$watch(function () {
+        return scope.valueT;
+      }, function (newValue, oldValue, scope) {
+        scope.counter++;
+      })
+    });
+    scope.$digest();
+    expect(scope.counter).toBe(1);
+  });
+  it("compared based on value if enabled",function(){
+    "use strict";
+    scope.valueArray=[1,2,3];
+    scope.counter=0;
+    scope.$watch(function () {
+      return scope.valueArray;
+    }, function (newValue, oldValue, scope) {
+      scope.counter++;
+    },true);
+    scope.$digest();
+    expect(scope.counter).toBe(1);
+    scope.valueArray.push(4);
+    scope.digest();
+    expect(scope.counter).toBe(2);
   })
 
 });

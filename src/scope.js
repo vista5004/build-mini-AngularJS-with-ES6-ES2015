@@ -1,22 +1,39 @@
 /**
  * Created by tiantan on 2016/10/15.
  */
-
+import _ from 'lodash';
+import lodash from 'lodash';
 function initWatchVal(){};
-
+/*function deepClone(result,source){
+    let self=this;
+    for(let key of source){
+      if(source === copy) continue;
+      let copy=source[key];
+      if(Object.prototype.toString.call(copy)==="[object Object]"){
+        result[key]=self.deepClone(result[key]||{},copy);
+      } else if(Object.prototype.toString.call(copy)==="[object Array]"){
+        result[key]=self.deepClone(result[key]||{},copy);
+      }else{
+        return result[key]=copy;
+      }
+    }
+    return result;
+}*/
 class Scope{
   constructor(){
     this.$$watchers=[];
     this.$$lastDirtyWatch=null;
   }
-  $watch(watcherFn,ListenerFunc){
+  $watch(watcherFn,ListenerFunc,valueEq){
     "use strict";
     const watcher={
       watchFn:watcherFn,
       ListenerFunc:ListenerFunc||function(){},
-      last:initWatchVal
+      last:initWatchVal,
+      valueEq:!!valueEq
     };
     this.$$watchers.push(watcher);
+    this.$$lastDirtyWatch=null;
   }
   $$digestOnce(){
     "use strict";
@@ -25,11 +42,11 @@ class Scope{
     let newValue;
     let oldValue;
     for(let watcher of this.$$watchers){
-     newValue=watcher.watchFn(self);
-     oldValue=watcher.last;
-      if(newValue!==oldValue){
+      newValue=watcher.watchFn(self);
+      oldValue=watcher.last;
+      if(!self.$$areEqual(newValue,oldValue,watcher.valueEq)){
         self.$$lastDirtyWatch=watcher;
-        watcher.last=newValue;
+        watcher.last=(watcher.valueEq ? _.cloneDeep(newValue) : newValue );
         watcher.ListenerFunc(newValue,(oldValue===initWatchVal?newValue:oldValue),self);
         dirty=true;
       }else if(self.$$lastDirtyWatch===watcher){
@@ -37,6 +54,15 @@ class Scope{
       }
     }
     return dirty;
+  };
+  $$areEqual(newValue,oldValue,valueEq){
+    "use strict";
+    let lo=new lodash();
+    if(valueEq){
+      return lo.isEqual(newValue,oldValue)
+    }else{
+      return newValue===oldValue;
+    }
   };
   $digest(){
     let dirty;
