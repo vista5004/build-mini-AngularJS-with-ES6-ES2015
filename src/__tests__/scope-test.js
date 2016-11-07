@@ -158,20 +158,33 @@ describe ("digest", function () {
     expect(scope.counter).toBe(1);
   });
   it("compared based on value if enabled",function(){
-    scope.aArray=[1,2,3];
+    scope.aValue = [1, 2, 3];
     scope.counter=0;
     scope.$watch(function () {
-      return scope.aArray;
+      return scope.aValue;
     }, function (newValue, oldValue, scope) {
+      scope.counter++;
+    },true);
+    scope.$digest();
+    expect(scope.counter).toBe(1);
+    scope.aValue.push(4);
+    scope.$digest();
+    expect(scope.counter).toBe(2);
+  });
+  it("correct handle the NANS", function () {
+    scope.number=0/0;
+    scope.counter=0;
+    scope.$watch(function (scope) {
+      return scope.number;
+    }, function (newValue,oldValue,scope) {
+      "use strict";
       scope.counter++;
     });
     scope.$digest();
     expect(scope.counter).toBe(1);
-    scope.aArray.push(4);
     scope.$digest();
-    expect(scope.counter).toBe(2);
-  });
-
+    expect(scope.counter).toBe(1);
+  })
 });
 
 
