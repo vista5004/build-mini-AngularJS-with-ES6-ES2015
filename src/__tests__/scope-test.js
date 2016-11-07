@@ -141,7 +141,7 @@ describe ("digest", function () {
     scope.array[0]=120;
     scope.$digest();
     expect(watchExecutions).toBe(301);
-  })
+  });
   it("do not end digest when the watch is in another watch", function () {
     scope.valueT="asd";
     scope.counter=0;
@@ -158,20 +158,19 @@ describe ("digest", function () {
     expect(scope.counter).toBe(1);
   });
   it("compared based on value if enabled",function(){
-    "use strict";
-    scope.valueArray=[1,2,3];
+    scope.aArray=[1,2,3];
     scope.counter=0;
     scope.$watch(function () {
-      return scope.valueArray;
+      return scope.aArray;
     }, function (newValue, oldValue, scope) {
       scope.counter++;
-    },true);
+    });
     scope.$digest();
     expect(scope.counter).toBe(1);
-    scope.valueArray.push(4);
-    scope.digest();
+    scope.aArray.push(4);
+    scope.$digest();
     expect(scope.counter).toBe(2);
-  })
+  });
 
 });
 

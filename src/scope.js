@@ -26,7 +26,7 @@ class Scope{
   }
   $watch(watcherFn,ListenerFunc,valueEq){
     "use strict";
-    const watcher={
+    let watcher={
       watchFn:watcherFn,
       ListenerFunc:ListenerFunc||function(){},
       last:initWatchVal,
@@ -47,7 +47,7 @@ class Scope{
       if(!self.$$areEqual(newValue,oldValue,watcher.valueEq)){
         self.$$lastDirtyWatch=watcher;
         watcher.last=(watcher.valueEq ? _.cloneDeep(newValue) : newValue );
-        watcher.ListenerFunc(newValue,(oldValue===initWatchVal?newValue:oldValue),self);
+        watcher.ListenerFunc(newValue,(oldValue===initWatchVal? newValue : oldValue),self);
         dirty=true;
       }else if(self.$$lastDirtyWatch===watcher){
         return false
