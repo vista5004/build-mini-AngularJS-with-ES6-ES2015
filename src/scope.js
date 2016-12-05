@@ -4,25 +4,12 @@
 import _ from 'lodash';
 import lodash from 'lodash';
 function initWatchVal(){};
-/*function deepClone(result,source){
-    let self=this;
-    for(let key of source){
-      if(source === copy) continue;
-      let copy=source[key];
-      if(Object.prototype.toString.call(copy)==="[object Object]"){
-        result[key]=self.deepClone(result[key]||{},copy);
-      } else if(Object.prototype.toString.call(copy)==="[object Array]"){
-        result[key]=self.deepClone(result[key]||{},copy);
-      }else{
-        return result[key]=copy;
-      }
-    }
-    return result;
-}*/
+
 class Scope{
   constructor(){
     this.$$watchers=[];
     this.$$lastDirtyWatch=null;
+    this.$$asyncQueue=[];
   }
   $watch(watcherFn,ListenerFunc,valueEq){
     "use strict";
@@ -54,23 +41,7 @@ class Scope{
       }
     }
     return dirty;
-   /* var self = this;
-    var newValue, oldValue, dirty;
-    _.forEach(this.$$watchers, function(watcher){
-      newValue = watcher.watchFn(self);
-      oldValue = watcher.last;
-      if(!(self.$$areEqual(newValue, oldValue, watcher.valueEq))){
-        self.$$lastDirtyWatch = watcher;
-        watcher.last = watcher.valueEq ? _.cloneDeep(newValue) : newValue;
-        watcher.ListenerFunc(newValue,
-          (oldValue === initWatchVal ? newValue: oldValue),
-          self);
-        dirty = true;
-      }else if(self.$$lastDirtyWatch === watcher){
-        return false;
-      }
-    });
-    return dirty;*/
+
   };
   $$areEqual(newValue,oldValue,valueEq){
     "use strict";
@@ -86,12 +57,35 @@ class Scope{
     let TTL=10;
     this.$$lastDirtyWatch=null;
     do{
+      while(this.$$asyncQueue.length){
+        let asyncTask =this.$$asyncQueue.shift();
+        asyncTask.scope.$eval(asyncTask.expression);
+      }
       dirty=this.$$digestOnce();
       if(dirty && !(TTL--)){
         throw "10 times limited"
       }
     } while(dirty)
-  }
+  };
+  $eval(exp,locals){
+    "use strict";
+    return exp(this,locals);
+  };
+  $apply(expr){
+    "use strict";
+    try{
+      return this.$eval(expr)
+    }finally{
+      this.$digest();
+    }
+  };
+  $evalAsync(expr){
+    "use strict";
+    this.$$asyncQueue.push({
+      scope:this,
+      expression:expr
+    })
+  };
 }
 
 export default Scope;

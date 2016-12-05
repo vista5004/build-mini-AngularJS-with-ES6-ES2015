@@ -184,7 +184,53 @@ describe ("digest", function () {
     expect(scope.counter).toBe(1);
     scope.$digest();
     expect(scope.counter).toBe(1);
+  });
+  it("execute $eval'ed function and return the result", function () {
+    scope.valueA=42;
+    let result=scope.$eval(function (scope) {
+      return scope.valueA;
+    });
+    expect(result).toBe(42);
+  });
+  it("pass the second argument to the $eval", function () {
+    scope.valueB=42;
+    let result=scope.$eval(function (scope, argument) {
+      return scope.valueB+argument;
+    },2);
+    expect(result).toBe(44);
+  });
+  it("execute $apply'ed function and starts the digest", function () {
+    scope.valueA="someValue";
+    scope.counter=0;
+    scope.$watch(function (scope) {
+      return scope.valueA;
+    }, function (newValue, oldValue, scope) {
+      scope.counter++;
+    });
+    scope.$digest();
+    expect(scope.counter).toBe(1);
+    scope.$apply(function (scope) {
+      scope.valueA="otherValue";
+    });
+    expect(scope.counter).toBe(2);
+  });
+  it("execute $evalAsync'ed function later in the same cycle", function () {
+    scope.aValue=[1,2,3,4];
+    scope.asyncEvaluated=false;
+    scope.asyncEvaluatedImmediately=false;
+    scope.$watch(function (scope) {
+      return scope.aValue;
+    }, function (newValue, oldValue, scope) {
+      scope.$evalAsync(function () {
+        scope.asyncEvaluated=true;//此处代码需等到digest执行的过程中才会执行，进去到asyncQueue数组中
+      });
+      scope.asyncEvaluatedImmediately=false;
+    });
+    scope.$digest();
+    expect(scope.asyncEvaluated).toBe(true);
+    expect(scope.asyncEvaluatedImmediately).toBe(false);
   })
+
 });
 
 
