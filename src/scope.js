@@ -62,10 +62,10 @@ class Scope{
         asyncTask.scope.$eval(asyncTask.expression);
       }
       dirty=this.$$digestOnce();
-      if(dirty && !(TTL--)){
+      if((dirty || this.$$asyncQueue.length) && !(TTL--)){
         throw "10 times limited"
       }
-    } while(dirty)
+    } while(dirty || this.$$asyncQueue.length)
   };
   $eval(exp,locals){
     "use strict";
